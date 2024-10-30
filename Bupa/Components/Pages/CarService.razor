@@ -1,0 +1,49 @@
+﻿@using Newtonsoft.Json;
+@using Bupa.Models;
+@page "/mot"
+@rendermode InteractiveServer
+
+<PageTitle>MOT Tracker</PageTitle>
+
+<h1>MOT Tracker</h1>
+
+<input type="text" @bind="input" placeholder="Enter text" />
+
+<p>Make: @make</p>
+<p>Model: @model</p>
+<p>Colour: @colour</p>
+<p>Expiry Date for last MOT: @motExpiry</p>
+
+<button class="btn btn-primary" @onclick="GetMOT">Click me</button>
+
+@code {
+    private string input = "";
+    private string make = "";
+    private string model = "";
+    private string colour = "";
+    private string motExpiry = "";
+    private string lastMileage = "";
+
+    private async Task GetMOT()
+    {
+       using (var httpClient = new HttpClient())
+        {
+            // Set default request headers
+            httpClient.DefaultRequestHeaders.Add("x-api-key", "fZi8YcjrZN1cGkQeZP7Uaa4rTxua8HovaswPuIno");
+
+            // Make a request
+            HttpResponseMessage response = await httpClient.GetAsync($"https://beta.check-mot.service.gov.uk/trade/vehicles/mot-tests?registration={input}");
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                List<Car> cars = JsonConvert.DeserializeObject<List<Car>>(content);
+                Car car = cars[0];
+                make = car.Make;
+                model = car.Model;
+                colour = car.PrimaryColour;
+                motExpiry = car.motTestExpiryDate.ToString();
+            }
+        }
+        
+    }
+}
